@@ -6,12 +6,33 @@ import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { LanguageToggle } from '@/components/language-toggle';
 import { useLanguage } from '@/components/language-provider';
-import { Menu, X, Sprout } from 'lucide-react';
+import { Menu, X, Sprout, Download } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export function LandingHeader() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { t } = useLanguage();
+
+  const handleDownload = (type: 'mobile' | 'desktop') => {
+    const fileUrls = {
+      mobile: '/downloads/agrobyte-mobile.apk',
+      desktop: '/downloads/agrobyte-desktop.exe'
+    };
+    
+    // Create a temporary link element
+    const link = document.createElement('a');
+    link.href = fileUrls[type];
+    link.download = type === 'mobile' ? 'AgroByte-Mobile.apk' : 'AgroByte-Desktop.exe';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -50,6 +71,22 @@ export function LandingHeader() {
           <Link href="/chat" className="text-foreground hover:text-primary transition-colors">
             {t('nav.chat')}
           </Link>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="flex items-center space-x-2">
+                <Download className="h-4 w-4" />
+                <span>Download</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => handleDownload('mobile')}>
+                Mobile App (APK)
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleDownload('desktop')}>
+                Desktop App
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </nav>
 
         <div className="hidden md:flex items-center space-x-4">
@@ -104,6 +141,23 @@ export function LandingHeader() {
             >
               {t('nav.chat')}
             </Link>
+            {/* Mobile Download Button */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="w-full flex items-center justify-center space-x-2">
+                  <Download className="h-4 w-4" />
+                  <span>Download</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => handleDownload('mobile')}>
+                  Mobile App (APK)
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleDownload('desktop')}>
+                  Desktop App
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
             <div className="flex items-center space-x-2 pt-2">
               <LanguageToggle />
               <Button variant="outline" size="sm" className="w-full" asChild>
