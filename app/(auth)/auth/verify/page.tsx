@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import {
@@ -14,7 +14,7 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/lib/supabase';
 
-export default function VerifyPage() {
+function VerifyForm() {
   const [otp, setOtp] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
@@ -100,5 +100,21 @@ export default function VerifyPage() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+export default function VerifyPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-muted/40">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-2xl">Loading...</CardTitle>
+          </CardHeader>
+        </Card>
+      </div>
+    }>
+      <VerifyForm />
+    </Suspense>
   );
 } 
