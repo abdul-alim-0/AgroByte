@@ -55,7 +55,7 @@ export default function LoginPage() {
     } catch (error) {
       toast({
         title: 'Login failed',
-        description: 'Please check your credentials and try again.',
+        description: 'Please Check your email and password and try again.',
         variant: 'destructive',
       });
     } finally {
@@ -77,7 +77,7 @@ export default function LoginPage() {
           <CardHeader>
             <CardTitle className="text-2xl text-center">Welcome back</CardTitle>
             <CardDescription className="text-center">
-              Enter your credentials to access your account
+              Enter your information to access your account
             </CardDescription>
           </CardHeader>
           <CardContent>

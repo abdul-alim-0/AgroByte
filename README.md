@@ -1,4 +1,4 @@
-# AgroByte - Global Agri-Social Platform with Marketplace & Learning
+# AgroByte - A Global Agri-Social Platform with Marketplace & Learning
 
 AgroByte is a comprehensive platform that connects farmers, buyers, agricultural experts, teachers, and general users worldwide. It combines social networking, marketplace functionality, educational resources, and AI-powered tools to create a complete ecosystem for the agricultural community.
 

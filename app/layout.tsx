@@ -9,8 +9,16 @@ import { AuthProvider } from '@/components/auth-provider';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'AgroByte - Global Agri-Social Platform',
+  title: 'AgroByte - A Global Agri-Social Platform with Marketplace & Learning',
   description: 'Connect with farmers, buyers, and agricultural experts worldwide',
+  icons: {
+    icon: [
+      {
+        url: '/sprout-icon.svg',
+        type: 'image/svg+xml',
+      }
+    ],
+  },
 };
 
 export default function RootLayout({
