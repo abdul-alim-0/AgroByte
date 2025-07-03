@@ -16,6 +16,8 @@ import {
 } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { Search, ShoppingCart } from 'lucide-react';
+import { Cart, CartItem } from '@/components/ui/cart';
+import { Checkout } from '@/components/ui/checkout';
 
 // Sample product data
 const products = [
@@ -24,54 +26,66 @@ const products = [
     name: 'Fresh Organic Tomatoes',
     price: 2.99,
     seller: 'Green Valley Farms',
+    sellerId: 'gvf123',
     location: 'Springfield, IL',
     image: 'https://images.pexels.com/photos/5529599/pexels-photo-5529599.jpeg',
     category: 'vegetables',
+    stock: 50,
   },
   {
     id: '2',
     name: 'Premium Rice (25kg)',
     price: 42.50,
     seller: 'Golden Harvest Co.',
+    sellerId: 'ghc456',
     location: 'Sacramento, CA',
     image: 'https://images.pexels.com/photos/4110251/pexels-photo-4110251.jpeg',
     category: 'grains',
+    stock: 100,
   },
   {
     id: '3',
     name: 'Heirloom Apple Variety Pack',
     price: 15.99,
     seller: 'Hillside Orchards',
+    sellerId: 'ho789',
     location: 'Eugene, OR',
     image: 'https://images.pexels.com/photos/1510392/pexels-photo-1510392.jpeg',
     category: 'fruits',
+    stock: 30,
   },
   {
     id: '4',
     name: 'Handheld Garden Tiller',
     price: 29.99,
     seller: 'AgriTools Shop',
+    sellerId: 'ats101',
     location: 'Columbus, OH',
     image: 'https://images.pexels.com/photos/369267/pexels-photo-369267.jpeg',
     category: 'tools',
+    stock: 15,
   },
   {
     id: '5',
     name: 'Organic Fertilizer (10kg)',
     price: 18.75,
     seller: 'Natural Growth Inc.',
+    sellerId: 'ngi202',
     location: 'Portland, OR',
     image: 'https://images.pexels.com/photos/2749165/pexels-photo-2749165.jpeg',
     category: 'supplies',
+    stock: 200,
   },
   {
     id: '6',
     name: 'Artisanal Honey (1L)',
     price: 22.50,
     seller: 'Sunny Apiaries',
+    sellerId: 'sa303',
     location: 'Austin, TX',
     image: 'https://images.pexels.com/photos/1027810/pexels-photo-1027810.jpeg',
     category: 'specialty',
+    stock: 40,
   }
 ];
 
@@ -79,6 +93,8 @@ export default function MarketplacePage() {
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   
   const filteredProducts = products.filter(product => {
     const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -89,9 +105,58 @@ export default function MarketplacePage() {
   });
   
   const handleAddToCart = (productId: string) => {
+    const product = products.find(p => p.id === productId);
+    if (!product) return;
+
+    setCartItems(prevItems => {
+      const existingItem = prevItems.find(item => item.id === productId);
+      if (existingItem) {
+        return prevItems.map(item =>
+          item.id === productId
+            ? { ...item, quantity: item.quantity + 1 }
+            : item
+        );
+      }
+      return [...prevItems, {
+        id: product.id,
+        name: product.name,
+        price: product.price,
+        quantity: 1,
+        image: product.image,
+        sellerId: product.sellerId,
+      }];
+    });
+
     toast({
       title: 'Added to cart',
       description: 'This product has been added to your cart.',
+    });
+  };
+
+  const handleRemoveFromCart = (productId: string) => {
+    setCartItems(prevItems => prevItems.filter(item => item.id !== productId));
+  };
+
+  const handleUpdateQuantity = (productId: string, quantity: number) => {
+    setCartItems(prevItems =>
+      prevItems.map(item =>
+        item.id === productId
+          ? { ...item, quantity }
+          : item
+      )
+    );
+  };
+
+  const handleCheckout = () => {
+    setIsCheckoutOpen(true);
+  };
+
+  const handlePaymentComplete = () => {
+    setCartItems([]);
+    setIsCheckoutOpen(false);
+    toast({
+      title: 'Order placed successfully',
+      description: 'Thank you for your purchase!',
     });
   };
   
@@ -104,10 +169,17 @@ export default function MarketplacePage() {
           <div className="max-w-6xl mx-auto">
             <div className="flex flex-col md:flex-row justify-between items-center mb-8">
               <h1 className="text-2xl font-bold mb-4 md:mb-0">Agricultural Marketplace</h1>
-              
-              <Button className="w-full md:w-auto" onClick={() => toast({ title: "Create listing feature coming soon" })}>
-                Sell Your Products
-              </Button>
+              <div className="flex gap-4">
+                <Cart
+                  items={cartItems}
+                  onRemoveItem={handleRemoveFromCart}
+                  onUpdateQuantity={handleUpdateQuantity}
+                  onCheckout={handleCheckout}
+                />
+                <Button className="w-full md:w-auto" onClick={() => toast({ title: "Create listing feature coming soon" })}>
+                  Sell Your Products
+                </Button>
+              </div>
             </div>
             
             <div className="flex flex-col sm:flex-row gap-4 mb-8">
@@ -165,6 +237,7 @@ export default function MarketplacePage() {
                       <div className="mt-2 text-sm text-muted-foreground">
                         <p>{product.seller}</p>
                         <p>{product.location}</p>
+                        <p className="mt-1">Stock: {product.stock} units</p>
                       </div>
                     </CardContent>
                     <CardFooter className="p-4 pt-0 flex justify-between">
@@ -183,6 +256,13 @@ export default function MarketplacePage() {
           </div>
         </main>
       </div>
+
+      <Checkout
+        isOpen={isCheckoutOpen}
+        onClose={() => setIsCheckoutOpen(false)}
+        items={cartItems}
+        onPaymentComplete={handlePaymentComplete}
+      />
     </div>
   );
 }
