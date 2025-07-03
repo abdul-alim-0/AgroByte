@@ -53,7 +53,7 @@ export function LandingHeader() {
     >
       <div className="container mx-auto px-4 py-3 flex items-center justify-between">
         <Link href="/" className="flex items-center space-x-2">
-          <Sprout className="h-8 w-8 text-primary" />
+          <Sprout className="h-8 w-8 text-green-500" />
           <span className="font-bold text-xl">AgroByte</span>
         </Link>
 

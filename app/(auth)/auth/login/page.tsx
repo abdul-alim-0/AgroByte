@@ -68,7 +68,7 @@ export default function LoginPage() {
       <div className="max-w-md w-full">
         <div className="flex justify-center mb-6">
           <Link href="/" className="flex items-center space-x-2">
-            <Sprout className="h-8 w-8 text-primary" />
+            <Sprout className="h-8 w-8 text-green-500" />
             <span className="font-bold text-2xl">AgroByte</span>
           </Link>
         </div>

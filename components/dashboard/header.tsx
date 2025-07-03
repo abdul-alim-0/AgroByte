@@ -42,7 +42,7 @@ export function DashboardHeader() {
           </Button>
           
           <Link href="/dashboard" className="flex items-center space-x-2">
-            <Sprout className="h-6 w-6 text-primary" />
+            <Sprout className="h-6 w-6 text-green-500" />
             <span className="font-bold text-xl hidden sm:inline-block">AgroByte</span>
           </Link>
         </div>

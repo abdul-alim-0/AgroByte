@@ -9,7 +9,7 @@ export function LandingFooter() {
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
           <div className="space-y-4">
             <div className="flex items-center space-x-2">
-              <Sprout className="h-6 w-6 text-primary" />
+              <Sprout className="h-6 w-6 text-green-500" />
               <span className="font-bold text-xl">AgroByte</span>
             </div>
             <p className="text-sm text-muted-foreground">
