@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'standalone',
+  output: 'export',
   images: {
     remotePatterns: [
       {
@@ -12,6 +12,7 @@ const nextConfig = {
         hostname: 'randomuser.me',
       },
     ],
+    unoptimized: true,
   },
   experimental: {
     serverActions: {
