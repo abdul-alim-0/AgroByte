@@ -15,28 +15,56 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { Upload, Scan, Check, AlertCircle, Loader2, FileUp } from 'lucide-react';
 
+// Fixed list of crop diseases
+const CROP_DISEASES = [
+  {
+    name: 'Sudden Death Syndrome (SDS)',
+    confidence: 95.5,
+    description: 'Sudden Death Syndrome is a serious fungal disease affecting soybean plants. It appears as irregular yellow and brown spots on the leaves, often with leaf edges drying and curling. Lower leaves are affected first, and in later stages, fungal growth may be seen near the root zone.',
+    treatment: 'Use SDS-resistant soybean varieties. Apply seed treatment fungicides such as fluopyram or ILeVO. Practice crop rotation with non-host crops like corn. Ensure proper soil drainage to avoid moisture accumulation. Remove and destroy severely infected plants if needed.'
+  },
+  {
+    name: 'Wheat Leaf Rust',
+    confidence: 92.8,
+    description: 'Wheat Leaf Rust is a fungal disease caused by *Puccinia triticina*. It appears as small, round to oval orange-brown pustules on the upper leaf surface. The infection reduces photosynthesis, weakens the plant, and can lead to significant yield loss if untreated. It thrives in warm, moist conditions.',
+    treatment: 'Use rust-resistant wheat varieties. Apply fungicides such as propiconazole or tebuconazole at early stages of infection. Practice crop rotation and remove volunteer wheat plants to reduce pathogen buildup. Avoid excessive nitrogen fertilization, as it increases susceptibility.'
+  }
+];
+
 export default function AIToolsPage() {
   const { toast } = useToast();
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [result, setResult] = useState<{
-    disease: string;
-    confidence: number;
-    description: string;
-    treatment: string;
-  } | null>(null);
+  const [result, setResult] = useState<typeof CROP_DISEASES[0] | null>(null);
 
-  const handleImageSelect = () => {
-    // Simulated image selection - in a real app, this would open a file picker
-    const mockImages = [
-      'https://images.pexels.com/photos/2749165/pexels-photo-2749165.jpeg',
-      'https://images.pexels.com/photos/1153369/pexels-photo-1153369.jpeg',
-      'https://images.pexels.com/photos/2886937/pexels-photo-2886937.jpeg'
-    ];
-    
-    const randomImage = mockImages[Math.floor(Math.random() * mockImages.length)];
-    setSelectedImage(randomImage);
-    setResult(null);
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validate file size (5MB limit)
+      if (file.size > 5 * 1024 * 1024) {
+        toast({
+          title: 'Error',
+          description: 'Image size should be less than 5MB',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        toast({
+          title: 'Error',
+          description: 'Please select a valid image file',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      setSelectedImage(file);
+      setPreviewUrl(URL.createObjectURL(file));
+      setResult(null);
+    }
   };
 
   const handleAnalyze = () => {
@@ -51,21 +79,18 @@ export default function AIToolsPage() {
 
     setIsAnalyzing(true);
     
-    // Simulate API call to AI model
+    // Simulate API call with setTimeout
     setTimeout(() => {
-      // Mock result
-      setResult({
-        disease: 'Late Blight',
-        confidence: 92.7,
-        description: 'Late blight is a plant disease caused by the oomycete pathogen Phytophthora infestans. It affects plants in the Solanaceae family, particularly potatoes and tomatoes, causing significant crop losses worldwide.',
-        treatment: 'Apply copper-based fungicides as a preventive measure. Remove and destroy infected plant parts. Ensure good air circulation around plants. Use resistant varieties when possible.'
-      });
+      // Get random disease
+      const randomDisease = CROP_DISEASES[Math.floor(Math.random() * CROP_DISEASES.length)];
+      setResult(randomDisease);
       setIsAnalyzing(false);
-    }, 2500);
+    }, 2000);
   };
 
   const handleReset = () => {
     setSelectedImage(null);
+    setPreviewUrl(null);
     setResult(null);
   };
 
@@ -89,36 +114,42 @@ export default function AIToolsPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   <Card>
                     <CardHeader>
-                      <CardTitle>Crop Disease Detection</CardTitle>
+                      <CardTitle>Upload Crop Image</CardTitle>
                       <CardDescription>
                         Upload an image of your crop to identify diseases and get treatment recommendations.
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
                       <div className="flex flex-col items-center justify-center space-y-4">
-                        {selectedImage ? (
+                        {previewUrl ? (
                           <div className="relative w-full aspect-square rounded-md overflow-hidden border">
                             <Image
-                              src={selectedImage}
+                              src={previewUrl}
                               alt="Selected crop image"
                               fill
                               className="object-cover"
                             />
                           </div>
                         ) : (
-                          <div 
-                            className="w-full aspect-square border-2 border-dashed rounded-md flex flex-col items-center justify-center p-4 text-center cursor-pointer hover:bg-muted/50 transition-colors"
-                            onClick={handleImageSelect}
-                          >
-                            <FileUp className="h-10 w-10 text-muted-foreground mb-2" />
-                            <p className="text-muted-foreground">Click to upload an image of your crop</p>
-                            <p className="text-xs text-muted-foreground mt-1">Supported formats: JPEG, PNG, WebP</p>
+                          <div className="w-full aspect-square border-2 border-dashed rounded-md flex flex-col items-center justify-center p-4 text-center">
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={handleImageSelect}
+                              className="hidden"
+                              id="image-upload"
+                            />
+                            <label htmlFor="image-upload" className="cursor-pointer w-full h-full flex flex-col items-center justify-center">
+                              <FileUp className="h-10 w-10 text-muted-foreground mb-2" />
+                              <p className="text-muted-foreground">Click to upload an image of your crop</p>
+                              <p className="text-xs text-muted-foreground mt-1">Supported formats: JPEG, PNG, WebP</p>
+                            </label>
                           </div>
                         )}
                       </div>
                     </CardContent>
                     <CardFooter className="flex justify-between">
-                      {selectedImage ? (
+                      {previewUrl ? (
                         <>
                           <Button variant="outline" onClick={handleReset}>
                             Reset
@@ -138,7 +169,7 @@ export default function AIToolsPage() {
                           </Button>
                         </>
                       ) : (
-                        <Button className="w-full" onClick={handleImageSelect}>
+                        <Button className="w-full" onClick={() => document.getElementById('image-upload')?.click()}>
                           <Upload className="h-4 w-4 mr-2" />
                           Upload Image
                         </Button>
@@ -146,26 +177,21 @@ export default function AIToolsPage() {
                     </CardFooter>
                   </Card>
                   
-                  <Card className={result ? '' : 'hidden md:block'}>
+                  <Card>
                     <CardHeader>
                       <CardTitle>Analysis Results</CardTitle>
                       <CardDescription>
                         {result 
                           ? `Disease detected with ${result.confidence.toFixed(1)}% confidence` 
-                          : 'The analysis results will appear here after processing.'}
+                          : 'Upload an image and click "Analyze" to get results'}
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
                       {result ? (
                         <div className="space-y-4">
-                          <div className="flex items-center space-x-2">
-                            <div className="bg-primary/10 p-2 rounded-full">
-                              <Check className="h-5 w-5 text-primary" />
-                            </div>
-                            <div>
-                              <h3 className="font-medium">Detected Disease</h3>
-                              <p className="text-lg font-bold">{result.disease}</p>
-                            </div>
+                          <div>
+                            <h3 className="font-medium mb-1">Detected Disease</h3>
+                            <p className="text-lg font-bold">{result.name}</p>
                           </div>
                           
                           <div>
@@ -177,28 +203,14 @@ export default function AIToolsPage() {
                             <h3 className="font-medium mb-1">Recommended Treatment</h3>
                             <p className="text-sm text-muted-foreground">{result.treatment}</p>
                           </div>
-                          
-                          <div className="bg-muted/50 p-4 rounded-md flex items-center space-x-3">
-                            <AlertCircle className="h-5 w-5 text-yellow-500" />
-                            <p className="text-sm">This is an AI-assisted diagnosis. For severe cases, please consult with an agricultural expert.</p>
-                          </div>
                         </div>
                       ) : (
-                        <div className="h-full flex flex-col items-center justify-center text-center py-8">
-                          <div className="bg-muted rounded-full p-4 mb-4">
-                            <Scan className="h-8 w-8 text-muted-foreground" />
-                          </div>
-                          <p className="text-muted-foreground">Upload an image and click "Analyze" to get started</p>
+                        <div className="h-[200px] flex flex-col items-center justify-center text-center">
+                          <Scan className="h-8 w-8 text-muted-foreground mb-2" />
+                          <p className="text-muted-foreground">No results yet</p>
                         </div>
                       )}
                     </CardContent>
-                    {result && (
-                      <CardFooter>
-                        <Button variant="outline" className="w-full" onClick={() => toast({ title: "Expert connection coming soon" })}>
-                          Connect with an Expert
-                        </Button>
-                      </CardFooter>
-                    )}
                   </Card>
                 </div>
               </TabsContent>
