@@ -18,7 +18,25 @@ interface CreatePaymentIntentBody {
   contactName: string;
 }
 
+// Add OPTIONS handler for CORS
+export async function OPTIONS() {
+  return NextResponse.json({}, {
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    },
+  });
+}
+
 export async function POST(req: Request) {
+  // Add CORS headers to the response
+  const headers = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+  };
+
   try {
     const body: CreatePaymentIntentBody = await req.json();
     const { amount, userId, items, shippingAddress, contactEmail, contactPhone, contactName } = body;
@@ -57,12 +75,12 @@ export async function POST(req: Request) {
     return NextResponse.json({
       clientSecret: paymentIntent.client_secret,
       orderId: order.id,
-    });
+    }, { headers });
   } catch (error) {
     console.error('Error:', error);
     return NextResponse.json(
       { error: 'Error creating payment intent' },
-      { status: 500 }
+      { status: 500, headers }
     );
   }
 } 
