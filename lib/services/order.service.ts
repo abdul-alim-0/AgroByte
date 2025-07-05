@@ -124,4 +124,25 @@ export async function updatePaymentStatus(paymentIntentId: string, status: 'succ
     console.error('Error updating payment status:', error);
     throw error;
   }
+}
+
+// Fetch all orders for a user, including order items and payment status
+export async function getOrdersByUser(userId: string) {
+  try {
+    const { data: orders, error } = await supabase
+      .from('orders')
+      .select(`
+        *,
+        order_items(*),
+        payments(*)
+      `)
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return orders;
+  } catch (error) {
+    console.error('Error fetching user orders:', error);
+    throw error;
+  }
 } 

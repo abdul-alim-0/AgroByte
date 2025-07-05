@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,6 +16,9 @@ import { useToast } from '@/hooks/use-toast';
 import { Search, ShoppingCart } from 'lucide-react';
 import { Cart, CartItem } from '@/components/ui/cart';
 import { Checkout } from '@/components/ui/checkout';
+import { Orders, Order } from '@/components/ui/orders';
+import { getOrdersByUser } from '@/lib/services/order.service';
+import { useAuth } from '@/components/auth-provider';
 
 // Sample product data
 const products = [
@@ -89,10 +92,22 @@ const products = [
 
 export default function MarketplaceClient() {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [ordersLoading, setOrdersLoading] = useState(false);
+
+  useEffect(() => {
+    if (user?.id) {
+      setOrdersLoading(true);
+      getOrdersByUser(user.id)
+        .then((data) => setOrders(data || []))
+        .finally(() => setOrdersLoading(false));
+    }
+  }, [user?.id]);
   
   const filteredProducts = products.filter(product => {
     const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -170,6 +185,7 @@ export default function MarketplaceClient() {
               onUpdateQuantity={handleUpdateQuantity}
               onCheckout={handleCheckout}
             />
+            <Orders orders={orders} loading={ordersLoading} />
             <Button className="w-full md:w-auto" onClick={() => toast({ title: "Create listing feature coming soon" })}>
               Sell Your Products
             </Button>
