@@ -11,6 +11,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Package } from 'lucide-react';
 import Image from 'next/image';
+import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 
 interface OrderItem {
   id: string;
@@ -33,6 +34,62 @@ export interface Order {
 interface OrdersProps {
   orders: Order[];
   loading: boolean;
+}
+
+// Helper to generate and download PDF invoice for an order
+async function generateInvoicePDF(order: Order) {
+  const pdfDoc = await PDFDocument.create();
+  const page = pdfDoc.addPage([400, 600]);
+  const { width, height } = page.getSize();
+  const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+  let y = height - 40;
+
+  // Header
+  page.drawText('INVOICE', { x: 30, y, size: 24, font, color: rgb(0, 0.5, 0) });
+  y -= 40;
+  page.drawText(`Order ID: ${order.id.slice(-8)}`, { x: 30, y, size: 12, font });
+  y -= 20;
+  page.drawText(`Date: ${new Date(order.created_at).toLocaleDateString()}`, { x: 30, y, size: 12, font });
+  y -= 20;
+  page.drawText(`Status: ${order.status}`, { x: 30, y, size: 12, font });
+  y -= 20;
+  page.drawText(`Total: $${order.total_amount.toFixed(2)}`, { x: 30, y, size: 12, font });
+  y -= 30;
+
+  // Table header
+  page.drawText('Items:', { x: 30, y, size: 14, font });
+  y -= 20;
+  page.drawText('Product', { x: 30, y, size: 12, font });
+  page.drawText('Qty', { x: 180, y, size: 12, font });
+  page.drawText('Unit Price', { x: 230, y, size: 12, font });
+  page.drawText('Total', { x: 320, y, size: 12, font });
+  y -= 15;
+  page.drawLine({ start: { x: 30, y }, end: { x: 370, y }, thickness: 1, color: rgb(0.8,0.8,0.8) });
+  y -= 10;
+
+  // Items
+  order.order_items.forEach(item => {
+    page.drawText(item.product_id, { x: 30, y, size: 11, font });
+    page.drawText(String(item.quantity), { x: 180, y, size: 11, font });
+    page.drawText(`$${item.unit_price.toFixed(2)}`, { x: 230, y, size: 11, font });
+    page.drawText(`$${(item.unit_price * item.quantity).toFixed(2)}`, { x: 320, y, size: 11, font });
+    y -= 15;
+  });
+
+  // Footer
+  y -= 30;
+  page.drawText('Thank you for your purchase!', { x: 30, y, size: 13, font, color: rgb(0,0.4,0.2) });
+
+  const pdfBytes = await pdfDoc.save();
+  const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `Invoice_${order.id.slice(-8)}.pdf`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }
 
 export function Orders({ orders, loading }: OrdersProps) {
@@ -63,6 +120,9 @@ export function Orders({ orders, loading }: OrdersProps) {
                   <div className="flex justify-between items-center mb-2">
                     <span className="text-sm">Status: <span className="font-semibold">{order.status}</span></span>
                     <span className="text-sm">Total: ${order.total_amount.toFixed(2)}</span>
+                    <Button size="sm" variant="outline" className="ml-2" onClick={() => generateInvoicePDF(order)}>
+                      🧾 Invoice
+                    </Button>
                   </div>
                   <Separator className="my-2" />
                   <div className="space-y-2">
